@@ -1,0 +1,325 @@
+Análisis bibliométrico y temático asistido por minería de texto sobre el uso de inteligencia artificial en investigación clínica (2023–2025): una scoping review computacional
+
+Gilberto Objio1, Xavier Barber2,*
+
+1 Programa de Doctorado en Inteligencia Artificial Aplicada, Universidad Miguel Hernández, Elche, España
+
+2 Centro de Investigación Operativa (CIO), Universidad Miguel Hernández, Elche, España
+
+* Autor de correspondencia: xavier.barber@umh.es
+
+Resumen
+
+Objetivo: Mapear la literatura científica sobre la aplicación de inteligencia artificial (IA) en investigación clínica durante el periodo 2023–2025, mediante una scoping review asistida por técnicas de minería de texto, con el fin de identificar clústeres temáticos, tendencias emergentes y vacíos relacionados con la implementación responsable de la IA.
+
+Métodos: Se realizó un análisis computacional de 8.522 documentos recuperados de Scopus. El protocolo metodológico se basó en las recomendaciones del Joanna Briggs Institute (JBI) para scoping reviews y el diagrama de flujo PRISMA-ScR. Los textos (títulos, resúmenes y palabras clave) fueron preprocesados mediante técnicas de procesamiento de lenguaje natural (NLP) y vectorizados con TF-IDF. Posteriormente, se aplicó clustering mediante K-Means, validando la elección del número de clústeres (k=15) mediante el método del codo y el coeficiente de silueta. Se realizaron análisis de co-ocurrencia de keywords y reducción dimensional mediante t-SNE para visualización.
+
+Resultados: El análisis identificó 15 clústeres temáticos diferenciados. Se observó un crecimiento global del 111% en publicaciones entre 2023 y 2025. Los clústeres con mayor crecimiento fueron: NLP y modelos de lenguaje grande (+240%), radiomics con tomografía computarizada (+229%) y estudios clínicos retrospectivos (+225%). El clúster de imagenología con deep learning constituyó el de mayor volumen (15,9%), aunque mostró un crecimiento relativo menor. Destacó el aumento de estudios sobre privacidad, seguridad y aprendizaje federado (+133%), así como la emergencia de aplicaciones de procesamiento de lenguaje natural sobre registros electrónicos de salud. El análisis de centralidad identificó "machine learning", "diagnosis" y "clinical trial" como conceptos puente entre subcampos.
+
+Conclusión: Los hallazgos sugieren que la IA aplicada a la investigación clínica está transitando desde una preocupación casi exclusiva por la precisión técnica hacia la implementación ética, segura y explicable. Los modelos de lenguaje grande y los sistemas de Retrieval-Augmented Generation (RAG) emergen como herramientas estratégicas para la síntesis de evidencia científica, mientras que el aprendizaje federado y blockchain se consolidan como soluciones para la privacidad de datos sensibles.
+
+Palabras clave: inteligencia artificial; investigación clínica; scoping review; minería de texto; machine learning; deep learning; modelos de lenguaje grande; aprendizaje federado; registros electrónicos de salud
+
+1. Introducción
+
+La irrupción de la inteligencia artificial (IA) en el ámbito de la salud ha generado una expansión sin precedentes en la producción científica. En apenas tres años, los estudios sobre aprendizaje automático (machine learning), aprendizaje profundo (deep learning), modelos generativos y grandes modelos de lenguaje (Large Language Models, LLMs) aplicados a la investigación clínica han experimentado un crecimiento exponencial [1–3]. Este fenómeno ha intensificado lo que algunos autores describen como "infoxicación", es decir, la sobrecarga informativa que dificulta distinguir, organizar y sintetizar la evidencia relevante en un tiempo razonable [4].
+
+En el caso específico de la IA clínica, la magnitud y diversidad temática de las publicaciones hacen que una revisión manual exhaustiva resulte, en la práctica, impracticable, tanto por las limitaciones humanas como por la velocidad con la que se actualiza el campo. La IA clínica no se limita a un único dominio: abarca desde modelos de predicción de riesgo para eventos adversos hasta sistemas de ayuda al diagnóstico basados en imagenología, pasando por aplicaciones en monitorización remota, estratificación de pacientes, descubrimiento de fármacos y análisis automatizado de historias clínicas [5–8].
+
+Más recientemente, la irrupción de la IA generativa y los LLMs ha introducido nuevas posibilidades para la redacción de textos científicos, la generación de hipótesis, el asesoramiento clínico y el soporte a la toma de decisiones [9–11]. Sin embargo, estos avances vienen acompañados de desafíos sustantivos en términos de privacidad, seguridad, confiabilidad, explicabilidad y gobernanza ética [12–14]. La Food and Drug Administration (FDA) de Estados Unidos ha autorizado más de 950 dispositivos médicos basados en IA/ML hasta 2024 [15], mientras que el Reglamento Europeo de Inteligencia Artificial (EU AI Act) establece nuevos requisitos para sistemas de alto riesgo en el ámbito sanitario [16].
+
+Metodológicamente, la literatura en salud ha recurrido tradicionalmente a las revisiones sistemáticas y meta-análisis para responder preguntas específicas formuladas en términos PICO (Población, Intervención, Comparador, Outcome) [17]. Estas revisiones se centran en valorar la eficacia o seguridad de intervenciones concretas, exigiendo una evaluación detallada del riesgo de sesgo de cada estudio incluido. No obstante, cuando el objetivo es explorar un campo emergente, amplio, heterogéneo y en rápida expansión, como la IA en investigación clínica, la aproximación sistemática clásica puede resultar insuficiente o incluso inadecuada [18].
+
+En tales escenarios, las scoping reviews se han consolidado como un diseño metodológico adecuado para mapear conceptos clave, tipos de evidencia disponibles y vacíos de conocimiento, más que para estimar efectos cuantitativos [19–21]. De acuerdo con los marcos propuestos por Arksey y O'Malley [22] y desarrollados posteriormente por el Joanna Briggs Institute (JBI) [23–25], la scoping review se orienta a ofrecer una visión panorámica, identificar tendencias, delimitar subcampos y orientar futuras revisiones sistemáticas o estudios primarios. El foco no está en evaluar exhaustivamente la calidad metodológica de cada estudio, sino en describir y organizar el paisaje de la evidencia.
+
+La conjunción entre scoping review y herramientas computacionales de minería de texto abre una oportunidad metodológica particularmente pertinente para la IA clínica [26–28]. Por un lado, la lógica PRISMA permite explicitar de forma transparente el proceso de búsqueda, cribado, elegibilidad e inclusión de estudios, aportando trazabilidad y reproducibilidad [29]. Por otro lado, técnicas de procesamiento de lenguaje natural (NLP), como la vectorización mediante TF-IDF y el clustering no supervisado, permiten estructurar grandes colecciones de documentos en clústeres temáticos, a partir de patrones de co-ocurrencia de términos [30–32].
+
+En el periodo 2023–2025, este tipo de enfoque resulta especialmente relevante. No solo se ha intensificado el uso de modelos de aprendizaje profundo para imagenología [33–35], sino que han cobrado protagonismo nuevas preocupaciones, tales como la privacidad y seguridad de los datos, el aprendizaje federado [36–38], la regulación de la IA generativa y la necesidad de sistemas explicables y auditables [39–41]. En paralelo, aplicaciones basadas en NLP y LLMs sobre registros electrónicos de salud (EHR) han comenzado a configurarse como un área emergente [42–44], planteando retos adicionales sobre la reutilización de datos sensibles y el control de las alucinaciones de los modelos [45].
+
+En este trabajo se propone una scoping review asistida por minería de texto sobre 8.522 documentos relacionados con la aplicación de IA en investigación clínica, publicados entre 2023 y 2025 e indexados en Scopus. La revisión combina un flujo de selección inspirado en PRISMA-ScR con un análisis de textos basado en TF-IDF y K-Means (k=15), validado mediante el método del codo y el coeficiente de silueta. La pregunta central se formula bajo el esquema PCC (Población, Concepto, Contexto):
+
+Población: Estudios de investigación clínica, incluyendo ensayos clínicos, estudios observacionales y estudios de modelado relacionados con pacientes, intervenciones, resultados clínicos o procesos sanitarios.
+
+Concepto: Aplicaciones de inteligencia artificial, machine learning, deep learning, IA generativa y grandes modelos de lenguaje (LLMs) en la investigación clínica.
+
+Contexto: La producción científica global publicada entre 2023 y 2025 en las principales bases de datos biomédicas.
+
+A partir de esta formulación, la presente scoping review se orienta a ofrecer una cartografía bibliométrica y temática del campo, con los siguientes objetivos específicos: (1) mapear los clústeres temáticos predominantes; (2) describir las tendencias temporales de dichos clústeres en el periodo de interés; y (3) identificar la emergencia de subcampos vinculados a la implementación responsable de la IA, incluyendo privacidad, ética y sistemas de generación aumentada por recuperación (RAG).
+
+2. Materiales y Métodos
+
+2.1. Diseño del estudio
+
+Este estudio se diseñó como una scoping review asistida por minería de texto y clustering no supervisado. El protocolo metodológico se inspiró en las recomendaciones de Arksey y O'Malley [22] y en las guías actualizadas del Joanna Briggs Institute (JBI) [23–25] para scoping reviews, así como en la extensión PRISMA para scoping reviews (PRISMA-ScR) [29] para describir de forma transparente el proceso de selección de estudios. El objetivo fue mapear la literatura reciente sobre IA en investigación clínica, más que evaluar la eficacia de intervenciones específicas.
+
+2.2. Fuentes de información y estrategia de búsqueda
+
+Se consultó Scopus como fuente principal de información, dado su amplio alcance en literatura biomédica y tecnológica. Las búsquedas se realizaron para el periodo 2023–2025, utilizando la siguiente estrategia de búsqueda estructurada en tres bloques conceptuales:
+
+Bloque 1 (Inteligencia Artificial): "artificial intelligence" OR "machine learning" OR "deep learning" OR "generative model" OR ChatGPT OR "large language model"
+
+Bloque 2 (Investigación Clínica): "clinical research" OR "clinical trial" OR "medical data" OR "healthcare data" OR "EHR"
+
+Bloque 3 (Metodología): "methodology" OR "framework" OR "workflow" OR "pipeline" OR "research process" OR "data management" OR reproducibility OR "validation"
+
+Los tres bloques se combinaron mediante el operador AND. Se aplicaron filtros por tipo de documento (artículos, revisiones, conference papers) y por ámbito biomédico. La búsqueda final se ejecutó en noviembre de 2025.
+
+2.3. Proceso de selección: flujo PRISMA-ScR
+
+El flujo de selección se describió de acuerdo con las fases habituales de PRISMA-ScR [29]. En la fase de identificación, se recuperaron 8.522 registros de Scopus. En la fase de cribado, se eliminaron duplicados y se excluyeron documentos claramente no pertinentes según el título, el resumen o el tipo de publicación. Para la fase de inclusión del análisis computacional, se utilizaron los registros que contenían información suficiente en al menos dos de los tres campos de interés: título de la fuente (Source title), palabras clave de autor (Author Keywords) y palabras clave indexadas (Index Keywords). El corpus final para el análisis de clustering incluyó 8.395 documentos con información textual válida.
+
+2.4. Preprocesamiento del texto
+
+Los textos analizados correspondieron principalmente a las palabras clave de autor, palabras clave indexadas y títulos de las revistas fuente. El preprocesamiento se llevó a cabo utilizando Python (versión 3.11) con las librerías pandas, scikit-learn y NLTK. En primer lugar, se transformaron todos los caracteres a minúsculas y se eliminaron signos de puntuación y caracteres especiales. Las palabras clave de cada artículo se extrajeron y normalizaron, eliminando stopwords tanto en inglés como términos académicos de alta frecuencia pero baja capacidad discriminativa (human, humans, male, female, aged, middle aged, adult, article, study).
+
+2.5. Vectorización y clustering
+
+Tras el preprocesamiento, cada documento se representó como un vector de características utilizando la técnica de Term Frequency–Inverse Document Frequency (TF-IDF), implementada con scikit-learn [46]. Se configuró el vectorizador con un máximo de 3.000 características, frecuencia mínima de documento de 5, frecuencia máxima de documento de 0,8, y n-gramas de 1 a 2 términos. Esta representación permitió capturar la relevancia relativa de cada término en el contexto del corpus completo.
+
+Para identificar patrones temáticos latentes, se aplicó el algoritmo de clustering K-Means con diferentes valores de k (3-15). La elección del número óptimo de clústeres se basó en un proceso exploratorio que combinó el método del codo (Elbow Method) y el análisis del coeficiente de silueta (Silhouette Score) [47]. El valor de k=15 se consideró un equilibrio razonable entre granularidad temática e interpretabilidad, con un coeficiente de silueta de 0,021.
+
+2.6. Análisis de co-ocurrencia y visualización
+
+Adicionalmente, se construyó una red de co-ocurrencia de palabras clave para identificar conceptos puente entre subcampos temáticos. Se calculó la centralidad de intermediación (betweenness centrality) para cada nodo de la red, identificando las palabras clave con mayor capacidad de conexión entre clústeres [48]. Para la visualización del espacio documental, se aplicó reducción dimensional mediante PCA (50 componentes) seguida de t-SNE (2 componentes) [49], permitiendo proyectar los documentos en un espacio bidimensional que preserva las relaciones de proximidad temática.
+
+2.7. Etiquetado e interpretación de clústeres
+
+Una vez fijado k=15, se procedió a etiquetar los clústeres revisando las palabras con mayor peso TF-IDF en cada centroide y examinando manualmente una muestra de documentos representativos. Este procedimiento permitió asignar etiquetas interpretables a cada clúster. El análisis temporal vinculó cada documento con su año de publicación, calculando la proporción relativa de documentos por clúster y año para identificar tendencias de crecimiento o estabilización.
+
+3. Resultados
+
+3.1. Descripción general del corpus
+
+El corpus final estuvo constituido por 8.522 documentos relacionados con la aplicación de inteligencia artificial en investigación clínica, publicados entre 2023 y 2025 e indexados en Scopus. De estos, 8.395 documentos (98,5%) contenían información textual suficiente para el análisis de clustering. El análisis de texto mediante TF-IDF y K-Means permitió identificar 15 clústeres temáticos diferenciados (Tabla 1). El crecimiento global del corpus fue del 111%, pasando de 1.769 artículos en 2023 a 3.724 artículos en 2025.
+
+Las 10 revistas con mayor número de publicaciones fueron: Scientific Reports (143), Lecture Notes in Networks and Systems (110), Lecture Notes in Computer Science (107), Computers in Biology and Medicine (98), Journal of Medical Internet Research (90), IEEE Access (88), Studies in Health Technology and Informatics (72), Academic Radiology (71), IEEE Journal of Biomedical and Health Informatics (70) y PLOS ONE (61). Esta distribución refleja la naturaleza interdisciplinar del campo, con presencia tanto de revistas de informática médica como de radiología y ciencias computacionales.
+
+Tabla 1. Caracterización de los 15 clústeres temáticos identificados mediante K-Means (k=15)
+
+Nota: El crecimiento se calcula como el cambio porcentual entre 2023 y 2025. N = número de artículos.
+
+3.2. Caracterización de los clústeres temáticos
+
+3.2.1. General ML/DL
+
+El clúster General ML/DL constituyó el de mayor volumen con 1.332 artículos (15,9%). Agrupó estudios de carácter metodológico general sobre machine learning y deep learning aplicados a contextos clínicos, incluyendo aspectos de sistemas computacionales, análisis de datos y ciencia de datos en salud. Las palabras clave más representativas incluyeron: learning, deep, data, research, clinical, machine learning, disease, medical, systems, computer. Las revistas predominantes fueron Lecture Notes in Computer Science (44), Lecture Notes in Networks and Systems (20) e IEEE Access (18). El crecimiento entre 2023 y 2025 fue del 69%, indicando una consolidación del campo más que una expansión acelerada.
+
+3.2.2. AI in Clinical Care
+
+El clúster AI in Clinical Care agrupó 903 artículos (10,8%) centrados en la implementación e integración de soluciones de IA en sistemas de salud y práctica clínica. Entre las palabras clave más representativas se encontraron: artificial intelligence, clinical, health, care, research, medical, medicine, review, patient, human. Este clúster mostró una tendencia creciente (102% de crecimiento), reflejando el interés progresivo hacia la infraestructura y gobernanza necesarias para incorporar la IA en la práctica clínica. Las revistas destacadas incluyeron BMJ Open (16), Journal of Medical Internet Research (15) y npj Digital Medicine (14).
+
+3.2.3. NLP & LLMs
+
+El clúster NLP & LLMs representó el dominio emergente de mayor crecimiento (+240%), centrado en procesamiento de lenguaje natural y modelos de lenguaje grande aplicados a datos clínicos, incluyendo registros electrónicos de salud y textos médicos no estructurados. Con 458 artículos (5,5%), las palabras clave características incluyeron: language, natural language processing, large language model, electronic health, medical, clinical, data. El crecimiento acelerado desde una base de 70 artículos en 2023 hasta 238 en 2025 refleja el impacto de ChatGPT y modelos similares en la investigación clínica. Las revistas principales fueron Journal of Biomedical Informatics (21), JAMIA (18) y Studies in Health Technology and Informatics (17).
+
+3.2.4. Healthcare Security & Federated Learning
+
+Este clúster agrupó 644 artículos (7,7%) sobre privacidad, seguridad de datos, blockchain y aprendizaje federado en contextos sanitarios. Las palabras clave dominantes fueron: data, healthcare, privacy, security, blockchain, federated learning, internet of things, computing. Este clúster presentó un crecimiento del 133%, indicando una preocupación creciente por la implementación responsable y regulada de la IA. Las revistas destacadas incluyeron Lecture Notes in Networks and Systems (28), IEEE Access (18) e IEEE Internet of Things Journal (15).
+
+3.2.5. CT Radiomics
+
+El clúster CT Radiomics se centró en radiomics y tomografía computarizada, con 381 artículos (4,5%) y un notable crecimiento del 229%. Las palabras clave representativas incluyeron: tomography, computed tomography, radiomics, lung, imaging, diagnostic. El auge de la extracción cuantitativa de características de imágenes médicas para predicción pronóstica explica este crecimiento. Academic Radiology (28), European Radiology (19) y European Journal of Radiology (19) fueron las revistas principales.
+
+3.2.6. Otros clústeres relevantes
+
+El análisis identificó adicionalmente clústeres especializados en: ML Classification Systems (698 artículos), enfocado en sistemas de decisión y clasificación; Clinical Studies Retrospective (691 artículos), con estudios observacionales que aplican ML; Cardiovascular Risk (549 artículos), centrado en modelos de riesgo cardiovascular; EHR Analytics (481 artículos), sobre análisis de registros electrónicos de salud; Cancer Genomics (457 artículos), combinando genómica y ML en oncología; MRI Imaging (447 artículos), deep learning aplicado a resonancia magnética; Deep Neural Networks (439 artículos), arquitecturas de redes neuronales; Medical Image Segmentation (424 artículos), segmentación de imágenes médicas; Drug Discovery (278 artículos), IA en descubrimiento farmacéutico; y Breast Cancer Imaging (213 artículos), imagenología mamaria con IA.
+
+3.3. Análisis de co-ocurrencia y conceptos puente
+
+El análisis de la red de co-ocurrencia de palabras clave identificó 303 nodos (keywords con frecuencia ≥100) y 2.956 aristas (co-ocurrencias ≥50). Los conceptos con mayor centralidad de intermediación (betweenness) fueron: "machine learning" (0,375), "artificial intelligence" (0,167), "deep learning" (0,107), "diagnosis" (0,053), "clinical trial" (0,036), "clinical research" (0,029), "cohort analysis" (0,026), "electronic health record" (0,024) y "multicenter study" (0,024). Estos términos actúan como puentes conectores entre los diferentes subcampos temáticos, indicando su papel central en la integración del conocimiento sobre IA clínica.
+
+3.4. Tendencias temporales
+
+El análisis temporal reveló patrones diferenciados entre los clústeres. Los clústeres con mayor aceleración fueron NLP & LLMs (+240%), CT Radiomics (+229%) y Clinical Studies Retrospective (+225%), indicando áreas de rápida expansión. Por el contrario, clústeres consolidados como General ML/DL (+69%), Medical Image Segmentation (+57%) y Breast Cancer Imaging (+75%) mostraron crecimiento más moderado, sugiriendo madurez temática. El clúster de Drug Discovery (+89%) mantiene un crecimiento sostenido pero moderado, consistente con los ciclos largos del desarrollo farmacéutico.
+
+4. Discusión
+
+4.1. Principales hallazgos y contexto
+
+Los resultados de esta scoping review asistida por minería de texto indican que el campo de la IA aplicada a la investigación clínica está experimentando un cambio de foco progresivo. En una fase inicial, la atención se concentró en la precisión técnica y el desempeño de modelos en tareas específicas, especialmente en ámbitos de imagenología y predicción de riesgo [50]. La consolidación de clústeres como General ML/DL e imagenología médica refleja esta etapa, caracterizada por la optimización de algoritmos y la mejora de métricas como el AUC y la sensibilidad/especificidad.
+
+Sin embargo, el crecimiento notorio de clústeres orientados a NLP/LLMs (+240%), privacidad y aprendizaje federado (+133%) sugiere que el eje del debate se está desplazando hacia la implementación responsable de la IA. Esto es consistente con la literatura reciente que enfatiza que la adopción de IA en contextos clínicos no puede reducirse a la mejora de la precisión, sino que exige garantías sólidas en términos de protección de datos, equidad, explicabilidad y cumplimiento regulatorio [12–14, 39–41].
+
+4.2. La irrupción de los LLMs en investigación clínica
+
+La emergencia del clúster de NLP & LLMs (+240% de crecimiento) evidencia la entrada en escena de una nueva generación de herramientas basadas en modelos de lenguaje de gran tamaño capaces de procesar y generar texto clínico [9–11]. Esta tendencia plantea oportunidades y riesgos simultáneos. Por un lado, los LLMs y la IA generativa prometen agilizar la síntesis de evidencia, la creación de borradores de protocolos y artículos, y el soporte a la toma de decisiones clínicas [51–53]. Por otro lado, las alucinaciones, los sesgos y la opacidad de estos modelos refuerzan la necesidad de marcos técnicos y éticos que limiten su uso indiscriminado en entornos de alta sensibilidad [45, 54].
+
+La revisión sistemática de Haltaufderheide y Ranisch [12] identificó 53 estudios sobre ética de LLMs en medicina, destacando preocupaciones sobre privacidad, calidad de la información, riesgos de sesgo y la necesidad de supervisión humana. Nuestros hallazgos son consistentes con esta literatura, mostrando que el auge de LLMs va acompañado de un crecimiento paralelo en estudios sobre privacidad y seguridad.
+
+4.3. El papel del aprendizaje federado y blockchain
+
+El crecimiento del clúster de Healthcare Security & Federated Learning (+133%) refleja la respuesta de la comunidad científica a las limitaciones de los enfoques centralizados tradicionales [36–38]. El aprendizaje federado permite entrenar modelos de IA sobre datos distribuidos sin centralizar información sensible, ofreciendo una solución técnica a las restricciones del GDPR y otras regulaciones de protección de datos [55]. La integración de blockchain como infraestructura de trazabilidad y auditabilidad complementa estas aproximaciones, aunque su adopción práctica en entornos clínicos reales sigue siendo limitada [56].
+
+4.4. Consolidación de radiomics y deep learning en imagenología
+
+El clúster de CT Radiomics (+229%) y la presencia consistente de clústeres de imagenología (MRI, segmentación, cáncer de mama) confirman que el procesamiento de imágenes médicas sigue siendo un pilar central de la IA clínica [33–35]. Sin embargo, revisiones sistemáticas recientes han señalado que, a pesar del alto volumen de publicaciones, la mayoría de sistemas de radiomics aún no han alcanzado la adopción clínica rutinaria debido a problemas de reproducibilidad, validación externa y heterogeneidad metodológica [57, 58]. La revisión de Freeman et al. [35] sobre IA en cribado de cáncer de mama encontró que el 94% de los sistemas evaluados mostraban menor precisión que un radiólogo individual, destacando la brecha entre promesas técnicas y utilidad clínica real.
+
+4.5. Sistemas RAG: hacia la síntesis de evidencia aumentada
+
+En el escenario identificado por esta revisión, los sistemas de Retrieval-Augmented Generation (RAG) adquieren un papel central como respuesta técnica a los desafíos de los LLMs [45, 59]. Los RAG combinan la capacidad generativa de los LLMs con módulos de recuperación de documentos relevantes desde repositorios actualizados, permitiendo que las respuestas se apoyen explícitamente en fuentes verificables. Xiong et al. [45] desarrollaron MedRAG y el benchmark MIRAGE específicamente para evaluar sistemas RAG en contextos médicos, demostrando mejoras significativas en la reducción de alucinaciones cuando las respuestas se anclan en literatura científica recuperada.
+
+El auge de estudios sobre privacidad, federated learning y modelos generativos sugiere que el futuro de la IA clínica dependerá en gran medida de soluciones que: (1) reduzcan las alucinaciones, (2) anclen las recomendaciones en evidencia reciente y trazable, y (3) operacionalicen principios de gobernanza y explicabilidad.
+
+4.6. Implicaciones regulatorias
+
+Los hallazgos de esta revisión deben interpretarse en el contexto regulatorio actual. La FDA ha establecido principios de Good Machine Learning Practice (GMLP) [15] y recientemente publicó guías para planes de control de cambios predeterminados (PCCP) en dispositivos con IA [60]. El EU AI Act clasifica las aplicaciones de IA en salud como sistemas de alto riesgo, requiriendo evaluaciones de conformidad, gestión de riesgos y supervisión humana [16]. La convergencia de estándares regulatorios entre jurisdicciones facilitará la validación y despliegue de sistemas de IA clínica, pero también incrementa los requisitos de documentación, explicabilidad y monitorización post-market.
+
+4.7. Limitaciones del estudio
+
+Esta scoping review presenta limitaciones inherentes a su diseño computacional. En primer lugar, al tratarse de una revisión de mapeo asistida por algoritmos de clustering, no se evaluó la calidad metodológica individual ni el riesgo de sesgo de los estudios incluidos, a diferencia de lo que ocurre en revisiones sistemáticas clásicas [17]. En consecuencia, los clústeres identificados describen patrones temáticos y tendencias de volumen, pero no permiten extraer conclusiones sobre la solidez de la evidencia en cada subcampo.
+
+En segundo lugar, el corpus puede estar sujeto a sesgos de idioma, dado que las búsquedas se centraron fundamentalmente en literatura en inglés indexada en Scopus, lo que podría dejar fuera publicaciones relevantes en otros idiomas o bases de datos. Adicionalmente, las decisiones de preprocesamiento de texto y parametrización del clustering (selección de k, conjunto de stopwords, configuración TF-IDF) condicionan la forma en que se agrupan los documentos. Aunque se utilizaron el método del codo y el coeficiente de silueta para justificar la elección de k=15, otras configuraciones podrían haber generado particiones alternativas del mismo corpus.
+
+Finalmente, la interpretación de los clústeres se basó en la inspección de términos de alto peso TF-IDF y de muestras de documentos representativos, lo que introduce un componente inevitable de juicio experto. La naturaleza dinámica del campo implica que los patrones identificados para 2023-2025 pueden evolucionar rápidamente en los próximos años.
+
+5. Conclusiones
+
+Esta scoping review asistida por minería de texto sobre 8.522 documentos publicados entre 2023 y 2025 demuestra que la IA aplicada a la investigación clínica ha evolucionado desde un énfasis inicial en la optimización algorítmica hacia una etapa de mayor complejidad y madurez, en la que la integración sistémica, la gobernanza de datos y la ética ocupan un lugar central.
+
+Los principales hallazgos incluyen:
+
+Un crecimiento global del 111% en publicaciones entre 2023 y 2025, reflejando el dinamismo del campo.
+
+La identificación de 15 clústeres temáticos diferenciados, desde imagenología y modelos predictivos consolidados hasta áreas emergentes como NLP/LLMs y aprendizaje federado.
+
+El mayor crecimiento en el clúster de NLP & LLMs (+240%), indicando el impacto transformador de los modelos de lenguaje grande en la investigación clínica.
+
+Un aumento sustancial en estudios sobre privacidad, seguridad y aprendizaje federado (+133%), reflejando la transición hacia la implementación responsable.
+
+La identificación de "machine learning", "diagnosis" y "clinical trial" como conceptos puente entre subcampos temáticos.
+
+La coexistencia de clústeres consolidados —como imagenología y modelos predictivos— con el crecimiento marcado de temas de privacidad, seguridad, aprendizaje federado y modelos generativos indica que la comunidad científica es cada vez más consciente de que la adopción de IA en salud requiere tanto excelencia técnica como marcos robustos de implementación responsable.
+
+El siguiente paso lógico para el campo consiste en avanzar hacia la implementación responsable de sistemas RAG clínicos, diseñados bajo principios de privacidad, transparencia, auditabilidad y alineación con marcos regulatorios y éticos. Estos sistemas pueden convertirse en aliados estratégicos de investigadores, clínicos y comités de ética, al facilitar el acceso a evidencia relevante, reducir la carga cognitiva asociada a la sobrecarga informativa y ofrecer un soporte informacional más seguro y trazable.
+
+Declaraciones
+
+Financiación: Este trabajo forma parte de la tesis doctoral de GO, realizada en el Programa de Doctorado en Inteligencia Artificial Aplicada de la Universidad Miguel Hernández. No se recibió financiación específica para este estudio.
+
+Conflictos de interés: Los autores declaran no tener conflictos de interés.
+
+Disponibilidad de datos: Los datos de Scopus están disponibles bajo solicitud. El código de análisis está disponible en [repositorio GitHub - pendiente de publicación].
+
+Contribuciones de los autores: GO: conceptualización, metodología, análisis formal, redacción del borrador original. XB: supervisión, metodología, revisión y edición.
+
+Referencias
+
+1. Thirunavukarasu AJ, Ting DSJ, Elangovan K, et al. Large language models in medicine. Nature Medicine. 2023;29(8):1930-1940.
+
+2. Topol EJ. High-performance medicine: the convergence of human and artificial intelligence. Nature Medicine. 2019;25(1):44-56.
+
+3. Rajpurkar P, Chen E, Banerjee O, Topol EJ. AI in health and medicine. Nature Medicine. 2022;28(1):31-38.
+
+4. Bornmann L, Mutz R. Growth rates of modern science: A bibliometric analysis based on the number of publications and cited references. JASIST. 2015;66(11):2215-2222.
+
+5. Aggarwal R, Sounderajah V, Martin G, et al. Diagnostic accuracy of deep learning in medical imaging: A systematic review and meta-analysis. npj Digital Medicine. 2021;4:65.
+
+6. Liu X, Faes L, Kale AU, et al. A comparison of deep learning performance against health-care professionals. Lancet Digital Health. 2019;1(6):e271-e297.
+
+7. Plana D, Shung DL, Grimshaw AA, et al. Randomized Clinical Trials of Machine Learning Interventions in Health Care. JAMA Network Open. 2022;5(9):e2233946.
+
+8. Han R, Acosta JN, Shakeri Z, et al. Randomised controlled trials evaluating artificial intelligence in clinical practice. Lancet Digital Health. 2024;6(5):e367-e373.
+
+9. Singhal K, Azizi S, Tu T, et al. Large language models encode clinical knowledge. Nature. 2023;620:172-180.
+
+10. Van Veen D, Van Uden C, Berry L, et al. Adapted large language models can outperform medical experts in clinical text summarization. Nature Medicine. 2024;30:1134-1142.
+
+11. Moor M, Banerjee O, Abad ZSH, et al. Foundation models for generalist medical artificial intelligence. Nature. 2023;616:259-265.
+
+12. Haltaufderheide J, Ranisch R. The ethics of ChatGPT in medicine and healthcare: a systematic review on Large Language Models. npj Digital Medicine. 2024;7:183.
+
+13. Chen RJ, Wang JJ, Williamson DFK, et al. Algorithmic fairness in artificial intelligence for medicine and healthcare. Nature Biomedical Engineering. 2023;7(6):719-742.
+
+14. Obermeyer Z, Powers B, Vogeli C, Mullainathan S. Dissecting racial bias in an algorithm used to manage the health of populations. Science. 2019;366(6464):447-453.
+
+15. U.S. Food and Drug Administration. Artificial Intelligence and Machine Learning (AI/ML)-Based Software as a Medical Device Action Plan. FDA; 2021.
+
+16. European Union. Regulation (EU) 2024/1689 - The Artificial Intelligence Act. Official Journal of the European Union. 2024.
+
+17. Higgins JPT, Thomas J, Chandler J, et al. Cochrane Handbook for Systematic Reviews of Interventions. 2nd ed. Wiley; 2019.
+
+18. Munn Z, Peters MDJ, Stern C, et al. Systematic review or scoping review? Guidance for authors. BMC Medical Research Methodology. 2018;18:143.
+
+19. Pollock D, Evans C, Jia RM, et al. How-to: scoping review? Journal of Clinical Epidemiology. 2024;176:111572.
+
+20. Peters MDJ, Marnie C, Tricco AC, et al. Updated methodological guidance for the conduct of scoping reviews. JBI Evidence Synthesis. 2020;18(10):2119-2126.
+
+21. Munn Z, Pollock D, Khalil H, et al. What are scoping reviews? Providing a formal definition. JBI Evidence Synthesis. 2022;20(4):950-952.
+
+22. Arksey H, O'Malley L. Scoping studies: towards a methodological framework. International Journal of Social Research Methodology. 2005;8(1):19-32.
+
+23. Peters MDJ, Godfrey C, McInerney P, et al. Chapter 11: Scoping Reviews. In: JBI Manual for Evidence Synthesis. JBI; 2020.
+
+24. Levac D, Colquhoun H, O'Brien KK. Scoping studies: advancing the methodology. Implementation Science. 2010;5:69.
+
+25. Colquhoun HL, Levac D, O'Brien KK, et al. Scoping reviews: time for clarity in definition, methods, and reporting. Journal of Clinical Epidemiology. 2014;67(12):1291-1294.
+
+26. O'Mara-Eves A, Thomas J, McNaught J, et al. Using text mining for study identification in systematic reviews. Systematic Reviews. 2015;4:5.
+
+27. Aria M, Cuccurullo C. bibliometrix: An R-tool for comprehensive science mapping analysis. Journal of Informetrics. 2017;11(4):959-975.
+
+28. Van Eck NJ, Waltman L. Software survey: VOSviewer, a computer program for bibliometric mapping. Scientometrics. 2010;84(2):523-538.
+
+29. Tricco AC, Lillie E, Zarin W, et al. PRISMA Extension for Scoping Reviews (PRISMA-ScR): Checklist and Explanation. Annals of Internal Medicine. 2018;169(7):467-473.
+
+30. Boyack KW, Newman D, Duhon RJ, et al. Clustering More than Two Million Biomedical Publications. PLoS ONE. 2011;6(3):e18029.
+
+31. Blei DM, Ng AY, Jordan MI. Latent Dirichlet Allocation. Journal of Machine Learning Research. 2003;3:993-1022.
+
+32. Mikolov T, Chen K, Corrado G, Dean J. Efficient estimation of word representations in vector space. arXiv preprint arXiv:1301.3781. 2013.
+
+33. Liu X, Cruz Rivera S, Moher D, et al. Reporting guidelines for clinical trial reports for interventions involving artificial intelligence: CONSORT-AI. Nature Medicine. 2020;26:1364-1374.
+
+34. Cruz Rivera S, Liu X, Chan AW, et al. Guidelines for clinical trial protocols for interventions involving artificial intelligence: SPIRIT-AI. Lancet Digital Health. 2020;2(10):e549-e560.
+
+35. Freeman K, Geppert J, Stinton C, et al. Use of artificial intelligence for image analysis in breast cancer screening. BMJ. 2021;374:n1872.
+
+36. Rieke N, Hancox J, Li W, et al. The future of digital health with federated learning. npj Digital Medicine. 2020;3:119.
+
+37. Sadilek A, Liu L, Nguyen D, et al. Privacy-first health research with federated learning. npj Digital Medicine. 2021;4:132.
+
+38. Eden R, Chukwudi I, Bain C, et al. A scoping review of the governance of federated learning in healthcare. npj Digital Medicine. 2025;8:427.
+
+39. Rosenbacke R, Melhus Å, McKee M, Stuckler D. How Explainable AI Can Increase or Decrease Clinicians' Trust. JMIR AI. 2024;3:e53207.
+
+40. Albahri AS, Duhaim AM, Fadhel MA, et al. A Systematic Review of Trustworthy and Explainable AI in Healthcare. Information Fusion. 2023;96:156-191.
+
+41. Jin W, Li X, Fatehi M, Hamarneh G. Guidelines and evaluation of clinical explainable AI in medical image analysis. Medical Image Analysis. 2023;84:102684.
+
+42. Hossain E, Rana R, Higgins N, et al. Natural Language Processing in Electronic Health Records: A systematic review. Computers in Biology and Medicine. 2023;155:106649.
+
+43. Sim JA, Huang X, Horan MR, et al. NLP with machine learning to analyze patient-reported outcomes from EHRs. Artificial Intelligence in Medicine. 2023;146:102701.
+
+44. Wieland-Jorna Y, van Kooten D, Verheij RA, et al. NLP systems for extracting information from EHRs about activities of daily living. JAMIA Open. 2024;7(2):ooae044.
+
+45. Xiong G, Jin Q, Lu Z, Zhang A. Benchmarking Retrieval-Augmented Generation for Medicine. Findings of ACL. 2024:6233-6251.
+
+46. Pedregosa F, Varoquaux G, Gramfort A, et al. Scikit-learn: Machine Learning in Python. Journal of Machine Learning Research. 2011;12:2825-2830.
+
+47. Rousseeuw PJ. Silhouettes: A graphical aid to the interpretation and validation of cluster analysis. Journal of Computational and Applied Mathematics. 1987;20:53-65.
+
+48. Freeman LC. Centrality in social networks conceptual clarification. Social Networks. 1978;1(3):215-239.
+
+49. van der Maaten L, Hinton G. Visualizing Data using t-SNE. Journal of Machine Learning Research. 2008;9:2579-2605.
+
+50. Nagendran M, Chen Y, Lovejoy CA, et al. Artificial intelligence versus clinicians: systematic review of design, reporting standards, and claims. BMJ. 2020;368:m689.
+
+51. Kanjee Z, Crowe B, Rodman A. Accuracy of a Generative AI Model in a Complex Diagnostic Challenge. JAMA. 2023;330(1):78-80.
+
+52. Shea YF, Lee CMY, Ip WCT, et al. Use of GPT-4 to Analyze Medical Records of Patients With Extensive Investigations. JAMA Network Open. 2023;6(8):e2325000.
+
+53. Omiye JA, Lester JC, Spichak S, et al. Large language models propagate race-based medicine. npj Digital Medicine. 2023;6:195.
+
+54. Dave T, Athaluri SA, Singh S. ChatGPT in medicine: An overview of its applications, advantages, limitations, future prospects, and ethical considerations. Frontiers in Artificial Intelligence. 2023;6:1169595.
+
+55. Khezr S, Moniruzzaman M, Yassine A, Benlamri R. Blockchain in healthcare: A systematic literature review. Computers in Industry. 2021;122:103288.
+
+56. Saeed H, Malik H, Bashir U, et al. Blockchain technology in healthcare: A systematic review. PLOS ONE. 2022;17(4):e0266462.
+
+57. Spadarella G, Stanzione A, Akinci D'Antonoli T, et al. Systematic Review of the Radiomics Quality Score Applications. European Radiology. 2023;33:1884-1894.
+
+58. Horvat N, Papanikolaou N, Koh DM. Radiomics Beyond the Hype: A Critical Evaluation Toward Oncologic Clinical Use. Radiology: AI. 2024;6(1):e230437.
+
+59. Amugongo LM, Mascheroni P, Brooks S, et al. Retrieval augmented generation for large language models in healthcare. PLOS Digital Health. 2025.
+
+60. U.S. FDA. Marketing Submission Recommendations for a Predetermined Change Control Plan for AI-Enabled Device Software Functions. FDA; 2024.
