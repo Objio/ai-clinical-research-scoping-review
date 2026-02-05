@@ -89,5 +89,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Contact
 
 - **Author**: Gilberto Objío Subero
-- **Email**: [your.email@institution.edu]
-- **ORCID**: [0000-0000-0000-0000]
+- **Email**: gilberto.objio@gmail.com
+- **ORCID**: [0009-0008-8166-068X](https://orcid.org/0009-0008-8166-068X)
